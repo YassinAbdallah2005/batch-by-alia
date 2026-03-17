@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { fetchOrders, updateOrderStatus, getOrderStats } from '@/lib/orders'
+import { fetchOrders, updateOrderStatus, getOrderStats, deleteOrder } from '@/lib/orders'
 import { useNavigate } from 'react-router-dom'
 import type { Order, OrderStatus } from '@/types/order'
 import {
@@ -11,7 +11,7 @@ import {
 import {
   LogOut, Search, Filter, Package, DollarSign,
   Clock, TrendingUp, ChevronDown, Phone, MapPin,
-  MessageSquare, RefreshCw,
+  MessageSquare, RefreshCw, Trash2,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import {
@@ -82,6 +82,18 @@ export default function AdminDashboard() {
       loadData()
     } catch (err) {
       toast.error('Failed to update order')
+    }
+  }
+
+  const handleDelete = async (orderId: string) => {
+    if (!window.confirm('Delete this order? This cannot be undone.')) return
+    try {
+      await deleteOrder(orderId)
+      toast.success('Order deleted')
+      setSelectedOrder(null)
+      loadData()
+    } catch (err) {
+      toast.error('Failed to delete order')
     }
   }
 
@@ -281,6 +293,7 @@ export default function AdminDashboard() {
                   )
                 }
                 onStatusUpdate={handleStatusUpdate}
+                onDelete={handleDelete}
               />
             ))
           )}
@@ -318,11 +331,13 @@ function OrderCard({
   isExpanded,
   onToggle,
   onStatusUpdate,
+  onDelete,
 }: {
   order: Order
   isExpanded: boolean
   onToggle: () => void
   onStatusUpdate: (id: string, status: OrderStatus) => void
+  onDelete: (id: string) => void
 }) {
   const createdAt = new Date(order.created_at)
   const timeAgo = getTimeAgo(createdAt)
@@ -449,8 +464,8 @@ function OrderCard({
             ))}
           </div>
 
-          {/* WhatsApp link */}
-          <div className="mt-3">
+          {/* Actions */}
+          <div className="mt-3 flex items-center gap-3">
             <a
               href={`https://wa.me/${order.customer_phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
                 `Hi ${order.customer_name}! This is Batch by Alia. Your order #${order.order_number} status: ${ORDER_STATUS_LABELS[order.status]}.`
@@ -461,6 +476,13 @@ function OrderCard({
             >
               Message on WhatsApp
             </a>
+            <button
+              onClick={() => onDelete(order.id)}
+              className="inline-flex items-center gap-2 rounded-lg border border-red-500/40 px-4 py-2 text-xs font-medium text-red-400 transition-all hover:bg-red-500/10"
+            >
+              <Trash2 className="size-3.5" />
+              Delete Order
+            </button>
           </div>
         </div>
       )}
