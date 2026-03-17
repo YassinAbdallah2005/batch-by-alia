@@ -92,8 +92,9 @@ export default function AdminDashboard() {
       toast.success('Order deleted')
       setSelectedOrder(null)
       loadData()
-    } catch (err) {
-      toast.error('Failed to delete order')
+    } catch (err: any) {
+      console.error('Delete error:', err)
+      toast.error(err?.message || 'Failed to delete order')
     }
   }
 

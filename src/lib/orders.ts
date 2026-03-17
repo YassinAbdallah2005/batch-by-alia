@@ -59,6 +59,13 @@ export async function updateOrderStatus(
 
 // Delete an order and its items (admin only)
 export async function deleteOrder(orderId: string): Promise<void> {
+  const { error: itemsError } = await supabase
+    .from('order_items')
+    .delete()
+    .eq('order_id', orderId)
+
+  if (itemsError) throw itemsError
+
   const { error } = await supabase
     .from('orders')
     .delete()
