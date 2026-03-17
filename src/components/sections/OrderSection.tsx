@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import {
   Plus, Minus, Check, Copy, ExternalLink,
-  Banknote, Smartphone, CreditCard,
+  Banknote, Smartphone, CreditCard, Loader2,
 } from 'lucide-react'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog'
 import toast from 'react-hot-toast'
+import { createOrder } from '@/lib/orders'
+import type { PaymentMethod } from '@/types/order'
 
 const PRODUCTS = [
   { name: 'Cookies', price: 85 },
@@ -17,8 +19,6 @@ const PRODUCTS = [
 
 const INSTAPAY_NUMBER = '+201120110109'
 const VODAFONE_NUMBER = '01120110109'
-
-type PaymentMethod = 'cod' | 'vodafone' | 'instapay'
 
 const PAYMENT_OPTIONS: { id: PaymentMethod; label: string; desc: string; icon: typeof Banknote }[] = [
   { id: 'cod', label: 'Cash on Delivery', desc: 'Pay when you receive your order', icon: Banknote },
@@ -37,6 +37,7 @@ export function OrderSection() {
   const [payment, setPayment] = useState<PaymentMethod>('cod')
   const [showConfirm, setShowConfirm] = useState(false)
   const [copiedField, setCopiedField] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const total = quantities.reduce((sum, q, i) => sum + q * PRODUCTS[i].price, 0)
 
@@ -51,7 +52,7 @@ export function OrderSection() {
       (item) => item.qty > 0
     )
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (total === 0) {
       toast.error('Please add at least one item to your order')
@@ -65,7 +66,41 @@ export function OrderSection() {
       toast.error('Please enter your delivery address')
       return
     }
-    setShowConfirm(true)
+
+    setSubmitting(true)
+
+    try {
+      // Save to Supabase
+      const items = getOrderItems()
+      await createOrder(
+        {
+          customer_name: name.trim(),
+          customer_phone: phone.trim(),
+          delivery_method: delivery,
+          delivery_address: delivery === 'delivery' ? address.trim() : undefined,
+          notes: notes.trim() || undefined,
+          payment_method: payment,
+          total_amount: total,
+        },
+        items.map((item) => ({
+          order_id: '', // Will be set in createOrder
+          product_name: item.name,
+          quantity: item.qty,
+          unit_price: item.price,
+          subtotal: item.qty * item.price,
+        }))
+      )
+
+      setShowConfirm(true)
+      toast.success('Order placed successfully!')
+    } catch (err) {
+      console.error('Order error:', err)
+      // Still show confirmation - WhatsApp will work as fallback
+      setShowConfirm(true)
+      toast.error('Could not save to database, but you can still send via WhatsApp')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleCopy = async (text: string, label: string) => {
@@ -82,6 +117,17 @@ export function OrderSection() {
     const lines = items.map((i) => `${i.qty}x ${i.name} (${i.qty * i.price} EGP)`)
     const msg = `Hi Alia! 🍪\n\nI'd like to place an order:\n${lines.join('\n')}\n\nTotal: ${total} EGP\nPayment: ${paymentLabel}\n\nName: ${name}\nPhone: ${phone}\n${delivery === 'delivery' ? `Delivery to: ${address}` : 'Pickup'}\n${notes ? `Notes: ${notes}` : ''}`
     return `https://wa.me/201120110109?text=${encodeURIComponent(msg)}`
+  }
+
+  const resetForm = () => {
+    setQuantities([0, 0, 0])
+    setName('')
+    setPhone('')
+    setDelivery('pickup')
+    setAddress('')
+    setNotes('')
+    setPayment('cod')
+    setShowConfirm(false)
   }
 
   const inputClass =
@@ -265,9 +311,17 @@ export function OrderSection() {
           {/* Submit */}
           <button
             type="submit"
-            className="border-beam mt-6 w-full rounded-xl bg-accent py-4 text-base font-semibold text-accent-foreground transition-all hover:bg-accent/90 hover:scale-[1.01] active:scale-[0.99]"
+            disabled={submitting}
+            className="border-beam mt-6 w-full rounded-xl bg-accent py-4 text-base font-semibold text-accent-foreground transition-all hover:bg-accent/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
           >
-            Confirm Order
+            {submitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="size-4 animate-spin" />
+                Placing order...
+              </span>
+            ) : (
+              'Confirm Order'
+            )}
           </button>
         </form>
       </div>
@@ -295,7 +349,7 @@ export function OrderSection() {
                 className="flex justify-between text-sm text-foreground"
               >
                 <span>
-                  {item.qty}× {item.name}
+                  {item.qty}x {item.name}
                 </span>
                 <span>{item.qty * item.price} EGP</span>
               </div>
@@ -405,7 +459,7 @@ export function OrderSection() {
 
           <button
             type="button"
-            onClick={() => setShowConfirm(false)}
+            onClick={resetForm}
             className="w-full rounded-xl border border-border py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
           >
             Done
