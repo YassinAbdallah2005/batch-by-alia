@@ -48,7 +48,7 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <a
-                  href="https://instagram.com"
+                  href="https://www.instagram.com/batchbakery_eg?igsh=MXYxYXpka3hkYzgybg=="
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
