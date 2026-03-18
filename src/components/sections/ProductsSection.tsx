@@ -1,29 +1,33 @@
+import { ArrowRight } from 'lucide-react'
 import { useScrollAnimation } from '@/hooks/useScrollAnimation'
 
 const PRODUCTS = [
   {
-    name: 'Cookies',
-    description:
-      'Chunky chocolate chip cookies with a gooey center, baked golden brown',
-    price: '85 EGP / box',
-    image:
-      'https://v3b.fal.media/files/b/0a92519b/nq4ohVa4HwoCaXqlQRulD_kstuz1D3.png',
+    number: '01',
+    name: 'Chocolate Chip Cookies',
+    description: 'Chunky, gooey center, golden brown',
+    price: '85 EGP',
+    per: '/ box',
+    image: 'https://v3b.fal.media/files/b/0a92519b/nq4ohVa4HwoCaXqlQRulD_kstuz1D3.png',
+    tag: 'Best Seller',
   },
   {
-    name: 'Brownies',
-    description:
-      'Rich, fudgy brownies with a crackly top and intense chocolate flavor',
-    price: '120 EGP / box',
-    image:
-      'https://v3b.fal.media/files/b/0a92519b/Mdxty-nFYu6B7Kxplz1Z1_T5rwahNv.png',
+    number: '02',
+    name: 'Fudge Brownies',
+    description: 'Rich, crackly top, intense chocolate',
+    price: '120 EGP',
+    per: '/ box',
+    image: 'https://v3b.fal.media/files/b/0a92519b/Mdxty-nFYu6B7Kxplz1Z1_T5rwahNv.png',
+    tag: 'Customer Fave',
   },
   {
+    number: '03',
     name: 'Cinnamon Buns',
-    description:
-      'Soft swirled buns with cinnamon sugar and cream cheese frosting',
-    price: '95 EGP / box',
-    image:
-      'https://v3b.fal.media/files/b/0a92523c/7JTMl7-FJJCkQM4f8ikeb_yLWBYBhm.png',
+    description: 'Soft swirled, cream cheese frosted',
+    price: '95 EGP',
+    per: '/ box',
+    image: 'https://v3b.fal.media/files/b/0a92523c/7JTMl7-FJJCkQM4f8ikeb_yLWBYBhm.png',
+    tag: 'Signature',
   },
 ]
 
@@ -35,56 +39,80 @@ export function ProductsSection() {
   }
 
   return (
-    <section id="menu" className="py-24 md:py-32" ref={sectionRef}>
+    <section id="menu" className="bg-[#FEFAF4] py-24 md:py-32" ref={sectionRef}>
       <div className="mx-auto max-w-7xl px-6">
-        {/* Section header */}
-        <div className="scroll-animate mb-16 text-center">
-          <h2 className="font-display text-4xl tracking-tight text-foreground sm:text-5xl md:text-6xl">
-            Our Menu
-          </h2>
-          <div className="mx-auto mt-4 h-[2px] w-20 bg-accent" />
-          <p className="mt-4 text-lg text-muted-foreground">
-            Every batch tells a story
+        {/* Header */}
+        <div className="scroll-animate mb-16 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <span className="text-xs font-medium uppercase tracking-[0.2em] text-[#D4944A]">What we bake</span>
+            <h2 className="mt-3 font-display text-5xl leading-none tracking-tight text-[#0F0905] sm:text-6xl md:text-7xl">
+              The Menu
+            </h2>
+          </div>
+          <p className="max-w-xs text-sm leading-relaxed text-[#9A7A62]">
+            Every batch is made fresh to order. No shortcuts, no compromises — just quality you can taste.
           </p>
         </div>
 
         {/* Product grid */}
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {PRODUCTS.map((product, i) => (
             <div
               key={product.name}
-              className="scroll-animate group card-flashlight overflow-hidden rounded-2xl bg-card shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+              className="scroll-animate group flex flex-col"
               style={{ transitionDelay: `${i * 100}ms` }}
             >
-              {/* Image */}
-              <div className="aspect-[4/3] overflow-hidden">
+              {/* Image area */}
+              <div className="relative overflow-hidden rounded-2xl bg-[#F0E8DE]" style={{ aspectRatio: '3/4' }}>
                 <img
                   src={product.image}
                   alt={product.name}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  draggable={false}
                 />
+
+                {/* Hover overlay */}
+                <div className="absolute inset-0 flex flex-col items-center justify-end bg-[#0F0905]/78 p-8 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                  <button
+                    onClick={scrollToOrder}
+                    className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-[#D4944A] px-6 py-3 text-sm font-semibold uppercase tracking-widest text-[#0F0905] transition-all hover:bg-[#E8B470]"
+                  >
+                    Order Now <ArrowRight className="size-3.5" />
+                  </button>
+                  <p className="mt-4 text-center text-sm text-[#F5EDE0]/70">{product.description}</p>
+                </div>
+
+                {/* Number badge */}
+                <div className="absolute right-4 top-4 flex size-9 items-center justify-center rounded-full bg-[#0F0905]/60 backdrop-blur-sm">
+                  <span className="font-display text-xs text-[#D4944A]">{product.number}</span>
+                </div>
+
+                {/* Tag badge */}
+                <div className="absolute left-4 top-4 rounded-full bg-[#D4944A] px-3 py-1">
+                  <span className="text-[10px] font-semibold uppercase tracking-widest text-[#0F0905]">{product.tag}</span>
+                </div>
               </div>
 
-              {/* Content */}
-              <div className="flex flex-col gap-3 p-6">
-                <h3 className="font-display text-2xl text-card-foreground">
-                  {product.name}
-                </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  {product.description}
-                </p>
-                <p className="font-display text-lg text-accent">
-                  {product.price}
-                </p>
-                <button
-                  onClick={scrollToOrder}
-                  className="mt-2 rounded-lg border border-accent px-4 py-2.5 text-sm font-medium text-accent transition-all hover:bg-accent hover:text-accent-foreground active:scale-[0.98]"
-                >
-                  Add to Order
-                </button>
+              {/* Card footer */}
+              <div className="mt-4 flex items-end justify-between px-1">
+                <h3 className="font-display text-xl text-[#0F0905]">{product.name}</h3>
+                <div className="text-right shrink-0 ml-4">
+                  <span className="font-display text-lg text-[#D4944A]">{product.price}</span>
+                  <span className="text-xs text-[#9A7A62]"> {product.per}</span>
+                </div>
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Bottom CTA */}
+        <div className="scroll-animate mt-16 text-center">
+          <button
+            onClick={scrollToOrder}
+            className="cursor-pointer inline-flex items-center gap-3 rounded-full border-2 border-[#0F0905]/15 bg-transparent px-10 py-4 text-sm font-semibold uppercase tracking-widest text-[#0F0905] transition-all duration-200 hover:bg-[#0F0905] hover:text-[#F5EDE0] hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Place an Order <ArrowRight className="size-4" />
+          </button>
         </div>
       </div>
     </section>
